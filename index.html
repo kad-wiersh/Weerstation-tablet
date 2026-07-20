@@ -236,7 +236,7 @@
   "use strict";
 
   // ---------- state & defaults ----------
-  var DEFAULTS = { name: "Rijssen", lat: 52.3167, lon: 6.5167 };
+  var DEFAULTS = { name: "Nijverdal", lat: 52.3639, lon: 6.4628 };
   var loc = loadLocation();
   var lastGood = loadCache();
   var refreshTimer = null;
@@ -498,7 +498,7 @@
     resize();
     draw();
   }
-
+/*
   // ---------- settings panel ----------
   function openPanel(){
     document.getElementById("inName").value = loc.name;
@@ -522,7 +522,7 @@
     closePanel();
     fetchWeather();
   });
-
+*/
   // ---------- fullscreen ----------
   function goFullscreen(){
     var el = document.documentElement;
