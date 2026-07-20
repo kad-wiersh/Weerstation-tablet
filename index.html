@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0B1220">
+<title>Weerstation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1220;
+    --cloud:#F4F7FA;
+    --muted:#93A2BE;
+    --gold:#F5B942;
+    --coral:#FF8A5B;
+    --line: rgba(244,247,250,0.16);
+    --panel: rgba(244,247,250,0.06);
+    --bg-a: #0B1220;
+    --bg-b: #1B2A4A;
+    --transition-bg: background 1.4s ease;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; height:100%; width:100%;
+    overflow:hidden; overscroll-behavior:none; user-select:none;
+    background: linear-gradient(160deg, var(--bg-a), var(--bg-b));
+    transition: var(--transition-bg);
+    color: var(--cloud);
+    font-family:'Inter', system-ui, sans-serif;
+  }
+  #stars{position:fixed; inset:0; z-index:0; opacity:0; transition:opacity 1.4s ease; pointer-events:none;}
+  .app{
+    position:relative; z-index:1;
+    height:100%; width:100%;
+    display:flex; flex-direction:column;
+    padding: 3.2vh 3.4vw 2vh 3.4vw;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{display:flex; justify-content:space-between; align-items:flex-start;}
+  .place{
+    font-family:'Space Grotesk', sans-serif; font-weight:600;
+    font-size: clamp(16px, 2vw, 24px); letter-spacing:.02em;
+    color: var(--cloud); opacity:.92;
+  }
+  .place small{display:block; font-family:'IBM Plex Mono', monospace; font-weight:400;
+    font-size: clamp(10px,1.1vw,13px); color: var(--muted); letter-spacing:.08em; margin-top:2px;}
+  .clockwrap{text-align:right;}
+  .clock{
+    font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size: clamp(28px, 4.4vw, 56px); line-height:1; letter-spacing:.01em;
+  }
+  /* .clock span{color:var(--gold);} */
+  .date{
+    font-family:'Inter', sans-serif; font-size: clamp(11px,1.2vw,14px);
+    color:var(--gold); margin-top:4px; text-transform:capitalize;
+  }
+
+  /* ---------- middle: sun arc + current ---------- */
+  .mid{flex:1; display:flex; align-items:center; gap:4vw; min-height:0;}
+  .arcbox{flex:0 0 34%; max-width:420px; display:flex; flex-direction:column; align-items:center;}
+  .arcbox svg{width:100%; height:auto; overflow:visible;}
+  .arc-times{display:flex; justify-content:space-between; width:88%; margin-top:-6px;
+    font-family:'IBM Plex Mono', monospace; font-size:clamp(10px,1.15vw,14px); color:var(--muted);}
+  .arc-label{font-family:'Inter'; font-size:clamp(10px,1vw,12px); color:var(--muted); margin-top:10px; letter-spacing:.05em;}
+
+  .current{flex:1; display:flex; align-items:center; gap:3vw; min-width:0;}
+  .cur-icon{flex:0 0 auto; width:clamp(70px,9vw,120px); height:clamp(70px,9vw,120px); color:var(--gold);}
+  .cur-main{min-width:0;}
+  .cur-temp{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size: clamp(52px, 9vw, 128px); line-height:1; letter-spacing:-.01em;
+    display:flex; align-items:flex-start;
+  }
+  .cur-temp sup{font-size:.35em; font-weight:500; margin-top:.15em; color:var(--muted);}
+  .cur-desc{font-family:'Space Grotesk'; font-weight:500; font-size:clamp(15px,1.8vw,22px); margin-top:2px;}
+  .cur-feels{font-family:'Inter'; font-size:clamp(12px,1.2vw,14px); color:var(--muted); margin-top:2px;}
+
+  .details{flex:0 0 auto; display:grid; grid-template-columns:1fr; gap:10px; min-width:150px;}
+  .det{display:flex; align-items:center; gap:10px;}
+  .det svg{width:clamp(16px,1.8vw,22px); height:clamp(16px,1.8vw,22px); color:var(--muted); flex:0 0 auto;}
+  .det-val{font-family:'IBM Plex Mono', monospace; font-size:clamp(13px,1.4vw,17px);}
+  .det-sub{font-family:'Inter'; font-size:clamp(9px,0.9vw,11px); color:var(--muted); display:block;}
+
+  /* ---------- hourly strip ---------- */
+  .hourly{
+    display:flex; gap: clamp(10px,1.6vw,22px); overflow-x:auto; padding: 14px 4px 10px 4px;
+    border-top:1px solid var(--line); margin-top:1vh;
+    -webkit-overflow-scrolling:touch;
+  }
+  .hourly::-webkit-scrollbar{height:0;}
+  .hr{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:6px; min-width:48px;}
+  .hr-t{font-family:'IBM Plex Mono'; font-size:clamp(10px,1vw,12px); color:var(--muted);}
+  .hr-icon{width:clamp(20px,2.2vw,28px); height:clamp(20px,2.2vw,28px); color:var(--cloud); opacity:.85;}
+  .hr-temp{font-family:'Space Grotesk'; font-weight:600; font-size:clamp(13px,1.3vw,16px);}
+  .hr-pop{font-family:'IBM Plex Mono'; font-size:clamp(9px,0.85vw,11px); color:#7FC4FF;}
+
+  /* ---------- daily row ---------- */
+  .daily{display:flex; justify-content:space-between; gap: clamp(6px,1vw,14px); padding-top:12px; border-top:1px solid var(--line); margin-top:8px;}
+  .dy{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:8px 4px; border-radius:14px; background:var(--panel);}
+  .dy-name{font-family:'Space Grotesk'; font-weight:600; font-size:clamp(11px,1.1vw,14px); text-transform:capitalize;}
+  .dy-icon{width:clamp(20px,2.4vw,30px); height:clamp(20px,2.4vw,30px); color:var(--gold); margin:2px 0;}
+  .dy-range{font-family:'IBM Plex Mono'; font-size:clamp(10px,1vw,13px); display:flex; gap:6px;}
+  .dy-range .lo{color:var(--muted);}
+  .dy-pop{font-family:'IBM Plex Mono'; font-size:clamp(9px,0.85vw,11px); color:#7FC4FF;}
+
+  /* ---------- footer ---------- */
+  .footer{display:flex; justify-content:space-between; align-items:center; margin-top:10px; opacity:.7;}
+  .updated{font-family:'IBM Plex Mono'; font-size:clamp(9px,0.9vw,11px); color:var(--muted);}
+  .updated.offline{color:var(--coral);}
+  .iconbtn{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    color:var(--muted); cursor:pointer;
+  }
+  .iconbtn svg{width:16px; height:16px;}
+  .footer-right{display:flex; gap:8px;}
+
+  /* ---------- settings panel ---------- */
+  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:5; display:none; align-items:center; justify-content:center;}
+  .overlay.show{display:flex;}
+  .panel{
+    background:#101a30; border:1px solid var(--line); border-radius:18px; padding:24px 26px;
+    width:min(90vw, 380px); font-family:'Inter';
+  }
+  .panel h3{font-family:'Space Grotesk'; margin:0 0 14px 0; font-size:18px;}
+  .panel label{display:block; font-size:12px; color:var(--muted); margin:12px 0 4px;}
+  .panel input{
+    width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line);
+    background:#0B1220; color:var(--cloud); font-family:'IBM Plex Mono'; font-size:14px;
+  }
+  .panel-btns{display:flex; gap:10px; margin-top:18px;}
+  .btn{flex:1; padding:10px; border-radius:9px; border:none; font-family:'Space Grotesk'; font-weight:600; cursor:pointer; font-size:14px;}
+  .btn.primary{background:var(--gold); color:#1a1300;}
+  .btn.ghost{background:transparent; color:var(--muted); border:1px solid var(--line);}
+  .hint{font-size:11px; color:var(--muted); margin-top:14px; line-height:1.5;}
+
+  .tapfs{position:fixed; inset:0; z-index:9; display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.5); color:var(--cloud); font-family:'Space Grotesk'; font-size:16px; text-align:center; padding:20px;}
+  .tapfs.hide{display:none;}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="app">
+
+  <div class="topbar">
+    <div class="place">
+      <span id="placeName">Rijssen</span>
+      <small id="coords">52.32°N 6.52°O</small>
+    </div>
+    <div class="clockwrap">
+      <div class="clock" id="clock">--<span>:</span>--</div>
+      <div class="date" id="dateStr">-</div>
+    </div>
+  </div>
+
+  <div class="mid">
+    <div class="arcbox">
+      <svg viewBox="0 0 300 170" id="arcSvg">
+        <path d="M20,140 A130,130 0 0 1 280,140" fill="none" stroke="rgba(244,247,250,0.18)" stroke-width="2" stroke-linecap="round"/>
+        <circle id="arcDot" cx="20" cy="140" r="7" fill="#F5B942"/>
+      </svg>
+      <div class="arc-times">
+        <span id="sunriseT">--:--</span>
+        <span id="sunsetT">--:--</span>
+      </div>
+      <div class="arc-label" id="arcLabel">daglicht</div>
+    </div>
+
+    <div class="current">
+      <div class="cur-icon" id="curIcon"></div>
+      <div class="cur-main">
+        <div class="cur-temp" id="curTemp">--<sup>°C</sup></div>
+        <div class="cur-desc" id="curDesc">Laden…</div>
+        <div class="cur-feels" id="curFeels">Voelt als --°</div>
+      </div>
+      <div class="details">
+        <div class="det">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2s7 8.5 7 13a7 7 0 1 1-14 0c0-4.5 7-13 7-13z"/></svg>
+          <div><span class="det-val" id="detHum">--%</span><span class="det-sub">Vochtigheid</span></div>
+        </div>
+        <div class="det">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h11a3 3 0 1 0-3-3M3 16h15a3 3 0 1 1-3 3M3 12h9a2.5 2.5 0 1 1-2.5 2.5"/></svg>
+          <div><span class="det-val" id="detWind">-- km/h</span><span class="det-sub" id="detWindDir">--</span></div>
+        </div>
+        <div class="det">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="7"/><path d="M12 13l3-3M12 4v2"/></svg>
+          <div><span class="det-val" id="detPres">-- hPa</span><span class="det-sub">Luchtdruk</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hourly" id="hourlyRow"></div>
+  <div class="daily" id="dailyRow"></div>
+
+  <div class="footer">
+    <div class="updated" id="updatedText">Laden…</div>
+    <div class="footer-right">
+      <div class="iconbtn" id="fsBtn" title="Volledig scherm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </div>
+      <div class="iconbtn" id="settingsBtn" title="Instellingen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="tapfs" id="tapFs">Tik ergens om te starten<br><small style="opacity:.7">(en eventueel volledig scherm te openen)</small></div>
+
+<div class="overlay" id="overlay">
+  <div class="panel">
+    <h3>Locatie instellen</h3>
+    <label>Naam (vrij te kiezen)</label>
+    <input id="inName" type="text" placeholder="bv. Rijssen">
+    <label>Breedtegraad (latitude)</label>
+    <input id="inLat" type="text" inputmode="decimal" placeholder="52.32">
+    <label>Lengtegraad (longitude)</label>
+    <input id="inLon" type="text" inputmode="decimal" placeholder="6.52">
+    <div class="panel-btns">
+      <button class="btn ghost" id="cancelBtn">Annuleren</button>
+      <button class="btn primary" id="saveBtn">Opslaan</button>
+    </div>
+    <div class="hint">Coördinaten opzoeken kan bijvoorbeeld via latlong.net. De gegevens komen van open-meteo.com (geen API-sleutel nodig).</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- state & defaults ----------
+  var DEFAULTS = { name: "Rijssen", lat: 52.3167, lon: 6.5167 };
+  var loc = loadLocation();
+  var lastGood = loadCache();
+  var refreshTimer = null;
+
+  function loadLocation(){
+    try{
+      var raw = localStorage.getItem("ws_location");
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return DEFAULTS;
+  }
+  function saveLocation(l){
+    loc = l;
+    try{ localStorage.setItem("ws_location", JSON.stringify(l)); }catch(e){}
+  }
+  function loadCache(){
+    try{
+      var raw = localStorage.getItem("ws_cache");
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return null;
+  }
+  function saveCache(data){
+    try{ localStorage.setItem("ws_cache", JSON.stringify(data)); }catch(e){}
+  }
+
+  // ---------- weather code -> description/icon ----------
+  var WCODE = {
+    0:["Heldere hemel","sun"], 1:["Overwegend helder","sun-cloud"], 2:["Half bewolkt","sun-cloud"],
+    3:["Bewolkt","cloud"], 45:["Mist","fog"], 48:["Aanvriezende mist","fog"],
+    51:["Lichte motregen","rain"], 53:["Motregen","rain"], 55:["Zware motregen","rain"],
+    56:["Lichte ijzel","rain"], 57:["IJzel","rain"],
+    61:["Lichte regen","rain"], 63:["Regen","rain"], 65:["Zware regen","rain"],
+    66:["Lichte ijsregen","rain"], 67:["IJsregen","rain"],
+    71:["Lichte sneeuw","snow"], 73:["Sneeuw","snow"], 75:["Zware sneeuw","snow"], 77:["Sneeuwkorrels","snow"],
+    80:["Lichte buien","rain"], 81:["Buien","rain"], 82:["Zware buien","rain"],
+    85:["Lichte sneeuwbuien","snow"], 86:["Zware sneeuwbuien","snow"],
+    95:["Onweer","thunder"], 96:["Onweer met hagel","thunder"], 99:["Zwaar onweer met hagel","thunder"]
+  };
+  function wInfo(code, isDay){
+    var e = WCODE[code] || ["Onbekend","cloud"];
+    var kind = e[1];
+    if(kind === "sun" && !isDay) kind = "moon";
+    if(kind === "sun-cloud" && !isDay) kind = "cloud-moon";
+    return { desc: e[0], kind: kind };
+  }
+
+  var ICONS = {
+    "sun": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4.6"/><path d="M12 1.5v3M12 19.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1.5 12h3M19.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+    "moon": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></svg>',
+    "cloud": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 18a4.5 4.5 0 0 1-.5-8.98A5.5 5.5 0 0 1 16.4 8.1 4 4 0 0 1 17.5 16v0"/><path d="M6.5 18h11"/></svg>',
+    "sun-cloud": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3.2"/><path d="M8 2.5v1.6M3 8h1.6M8 13.4v-1M3.6 4.6l1.1 1.1M12.4 4.6l-1.1 1.1"/><path d="M9.5 19a4.2 4.2 0 0 1-.4-8.38A5.1 5.1 0 0 1 18.7 9.4 3.7 3.7 0 0 1 19.7 16.6"/><path d="M9.5 19h9.2"/></svg>',
+    "cloud-moon": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9.8 8.4A3.4 3.4 0 1 1 6 4.6a2.7 2.7 0 0 0 3.8 3.8z"/><path d="M9.5 19a4.2 4.2 0 0 1-.4-8.38A5.1 5.1 0 0 1 18.7 9.4 3.7 3.7 0 0 1 19.7 16.6"/><path d="M9.5 19h9.2"/></svg>',
+    "rain": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 15.5a4.5 4.5 0 0 1-.5-8.98A5.5 5.5 0 0 1 16.4 7.6 4 4 0 0 1 17.5 15.5"/><path d="M8 18.5l-1 2.2M12 18.5l-1 2.2M16 18.5l-1 2.2"/></svg>',
+    "snow": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 15.5a4.5 4.5 0 0 1-.5-8.98A5.5 5.5 0 0 1 16.4 7.6 4 4 0 0 1 17.5 15.5"/><path d="M8 18v3M8 18l-1.6 1M8 18l1.6 1M12 18v3M12 18l-1.6 1M12 18l1.6 1M16 18v3M16 18l-1.6 1M16 18l1.6 1"/></svg>',
+    "fog": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 12a4.5 4.5 0 0 1-.5-8.98A5.5 5.5 0 0 1 16.4 4.1 4 4 0 0 1 17.5 11"/><path d="M3.5 15h17M3.5 18.5h17M3.5 21.5h13"/></svg>',
+    "thunder": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 13.5a4.5 4.5 0 0 1-.5-8.98A5.5 5.5 0 0 1 16.4 5.1 4 4 0 0 1 17.5 13"/><path d="M12.5 14.5l-3 4.5h2.6l-1.6 3.5 4.4-5.5h-2.6z"/></svg>'
+  };
+  function iconSvg(kind){ return ICONS[kind] || ICONS.cloud; }
+
+  var DIRS = ["N","NNO","NO","ONO","O","OZO","ZO","ZZO","Z","ZZW","ZW","WZW","W","WNW","NW","NNW"];
+  function windDir(deg){ return DIRS[Math.round(deg/22.5) % 16]; }
+
+  // ---------- clock ----------
+  function pad(n){ return n < 10 ? "0"+n : ""+n; }
+  var DAGEN = ["zondag","maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag"];
+  var MAANDEN = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
+  function tickClock(){
+    var now = new Date();
+    document.getElementById("clock").innerHTML = pad(now.getHours()) + "<span>:</span>" + pad(now.getMinutes());
+    document.getElementById("dateStr").textContent = DAGEN[now.getDay()] + " " + now.getDate() + " " + MAANDEN[now.getMonth()];
+  }
+
+  // ---------- rendering ----------
+  function fmtTime(iso){
+    var d = new Date(iso);
+    return pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+  function fmtHour(iso){
+    var d = new Date(iso);
+    return pad(d.getHours()) + ":00";
+  }
+  function round(n){ return Math.round(n); }
+
+  function setBackground(isDay, kind){
+    var body = document.body;
+    if(isDay){
+      if(kind === "sun") { body.style.setProperty("--bg-a", "#2E86D6"); body.style.setProperty("--bg-b", "#8FD3F4"); }
+      else if(kind === "rain" || kind === "thunder") { body.style.setProperty("--bg-a", "#3A4459"); body.style.setProperty("--bg-b", "#5C6B84"); }
+      else { body.style.setProperty("--bg-a", "#4F7EA6"); body.style.setProperty("--bg-b", "#A9C4D6"); }
+      document.getElementById("stars").style.opacity = 0;
+    } else {
+      body.style.setProperty("--bg-a", "#0B1220");
+      body.style.setProperty("--bg-b", "#1B2A4A");
+      document.getElementById("stars").style.opacity = 1;
+    }
+  }
+
+  function renderArc(current, daily){
+    var now = new Date();
+    var sunrise = new Date(daily.sunrise[0]);
+    var sunset = new Date(daily.sunset[0]);
+    var isDay = current.is_day === 1;
+    var t;
+    if(isDay){
+      t = (now - sunrise) / (sunset - sunrise);
+    } else {
+      var prevSunset, nextSunrise;
+      if(now < sunrise){
+        prevSunset = new Date(daily.sunset[daily.sunset.length > 1 ? daily.sunrise.length - 1 : 0]);
+        // yesterday's sunset not in data; approximate using today's sunrise minus 16h
+        prevSunset = new Date(sunrise.getTime() - 16*3600*1000);
+        nextSunrise = sunrise;
+      } else {
+        prevSunset = sunset;
+        nextSunrise = new Date(daily.sunrise[1] || (sunset.getTime() + 14*3600*1000));
+      }
+      t = (now - prevSunset) / (nextSunrise - prevSunset);
+    }
+    t = Math.max(0, Math.min(1, t));
+    var angle = Math.PI - t*Math.PI;
+    var cx = 150 + 130*Math.cos(angle);
+    var cy = 140 - 130*Math.sin(angle);
+    var dot = document.getElementById("arcDot");
+    dot.setAttribute("cx", cx.toFixed(1));
+    dot.setAttribute("cy", cy.toFixed(1));
+    dot.setAttribute("fill", isDay ? "#F5B942" : "#C9D6F0");
+
+    document.getElementById("sunriseT").textContent = fmtTime(daily.sunrise[0]);
+    document.getElementById("sunsetT").textContent = fmtTime(daily.sunset[0]);
+    document.getElementById("arcLabel").textContent = isDay ? "daglicht — " + round(t*100) + "%" : "nacht — " + round(t*100) + "%";
+  }
+
+  function renderCurrent(current){
+    var isDay = current.is_day === 1;
+    var info = wInfo(current.weather_code, isDay);
+    setBackground(isDay, info.kind);
+    document.getElementById("curIcon").innerHTML = iconSvg(info.kind);
+    document.getElementById("curTemp").innerHTML = round(current.temperature_2m) + "<sup>°C</sup>";
+    document.getElementById("curDesc").textContent = info.desc;
+    document.getElementById("curFeels").textContent = "Voelt als " + round(current.apparent_temperature) + "°C";
+    document.getElementById("detHum").textContent = round(current.relative_humidity_2m) + "%";
+    document.getElementById("detWind").textContent = round(current.wind_speed_10m) + " km/h";
+    document.getElementById("detWindDir").textContent = windDir(current.wind_direction_10m);
+    document.getElementById("detPres").textContent = round(current.pressure_msl) + " hPa";
+  }
+
+  function renderHourly(hourly){
+    var now = new Date();
+    var startIdx = 0;
+    for(var i=0;i<hourly.time.length;i++){
+      if(new Date(hourly.time[i]) >= now){ startIdx = i; break; }
+    }
+    var html = "";
+    for(var j=startIdx; j<Math.min(startIdx+14, hourly.time.length); j++){
+      var kind = wInfo(hourly.weather_code[j], 1).kind;
+      html += '<div class="hr">' +
+        '<div class="hr-t">' + fmtHour(hourly.time[j]) + '</div>' +
+        '<div class="hr-icon">' + iconSvg(kind) + '</div>' +
+        '<div class="hr-temp">' + round(hourly.temperature_2m[j]) + '°</div>' +
+        '<div class="hr-pop">' + round(hourly.precipitation_probability[j]) + '%</div>' +
+        '</div>';
+    }
+    document.getElementById("hourlyRow").innerHTML = html;
+  }
+
+  function renderDaily(daily){
+    var html = "";
+    for(var i=0;i<Math.min(6, daily.time.length);i++){
+      var d = new Date(daily.time[i]);
+      var name = i === 0 ? "Vandaag" : DAGEN[d.getDay()];
+      var kind = wInfo(daily.weather_code[i], 1).kind;
+      html += '<div class="dy">' +
+        '<div class="dy-name">' + name + '</div>' +
+        '<div class="dy-icon">' + iconSvg(kind) + '</div>' +
+        '<div class="dy-range"><span class="hi">' + round(daily.temperature_2m_max[i]) + '°</span><span class="lo">' + round(daily.temperature_2m_min[i]) + '°</span></div>' +
+        '<div class="dy-pop">' + round(daily.precipitation_probability_max[i]) + '%</div>' +
+        '</div>';
+    }
+    document.getElementById("dailyRow").innerHTML = html;
+  }
+
+  function renderAll(data){
+    document.getElementById("placeName").textContent = loc.name;
+    document.getElementById("coords").textContent = Number(loc.lat).toFixed(2) + "°N " + Number(loc.lon).toFixed(2) + "°O";
+    renderCurrent(data.current);
+    renderArc(data.current, data.daily);
+    renderHourly(data.hourly);
+    renderDaily(data.daily);
+  }
+
+  function setUpdated(ok){
+    var el = document.getElementById("updatedText");
+    var now = new Date();
+    var stamp = pad(now.getHours()) + ":" + pad(now.getMinutes());
+    if(ok){
+      el.textContent = "Bijgewerkt " + stamp;
+      el.className = "updated";
+    } else {
+      el.textContent = "Offline — laatste gegevens van " + stamp;
+      el.className = "updated offline";
+    }
+  }
+
+  // ---------- fetch ----------
+  function fetchWeather(){
+    var url = "https://api.open-meteo.com/v1/forecast" +
+      "?latitude=" + encodeURIComponent(loc.lat) +
+      "&longitude=" + encodeURIComponent(loc.lon) +
+      "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,is_day" +
+      "&hourly=temperature_2m,weather_code,precipitation_probability" +
+      "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max" +
+      "&timezone=auto&forecast_days=7";
+
+    fetch(url).then(function(r){
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function(data){
+      renderAll(data);
+      saveCache(data);
+      setUpdated(true);
+    }).catch(function(err){
+      console.error("Weerdata ophalen mislukt:", err);
+      if(lastGood){
+        renderAll(lastGood);
+      }
+      setUpdated(false);
+    });
+  }
+
+  // ---------- starfield (very light, low-power) ----------
+  function initStars(){
+    var c = document.getElementById("stars");
+    var ctx = c.getContext("2d");
+    var stars = [];
+    function resize(){
+      c.width = window.innerWidth;
+      c.height = window.innerHeight;
+      stars = [];
+      var n = Math.floor((c.width*c.height)/22000);
+      for(var i=0;i<n;i++){
+        stars.push({x: Math.random()*c.width, y: Math.random()*c.height*0.7, r: Math.random()*1.4+0.3, a: Math.random()});
+      }
+    }
+    function draw(){
+      ctx.clearRect(0,0,c.width,c.height);
+      for(var i=0;i<stars.length;i++){
+        var s = stars[i];
+        s.a += (Math.random()-0.5)*0.02;
+        if(s.a<0.15) s.a=0.15; if(s.a>1) s.a=1;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, 6.283);
+        ctx.fillStyle = "rgba(244,247,250," + s.a + ")";
+        ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+    window.addEventListener("resize", resize);
+    resize();
+    draw();
+  }
+
+  // ---------- settings panel ----------
+  function openPanel(){
+    document.getElementById("inName").value = loc.name;
+    document.getElementById("inLat").value = loc.lat;
+    document.getElementById("inLon").value = loc.lon;
+    document.getElementById("overlay").classList.add("show");
+  }
+  function closePanel(){ document.getElementById("overlay").classList.remove("show"); }
+
+  document.getElementById("settingsBtn").addEventListener("click", openPanel);
+  document.getElementById("cancelBtn").addEventListener("click", closePanel);
+  document.getElementById("saveBtn").addEventListener("click", function(){
+    var name = document.getElementById("inName").value.trim() || "Locatie";
+    var lat = parseFloat(document.getElementById("inLat").value);
+    var lon = parseFloat(document.getElementById("inLon").value);
+    if(isNaN(lat) || isNaN(lon)){
+      alert("Vul geldige coördinaten in.");
+      return;
+    }
+    saveLocation({ name: name, lat: lat, lon: lon });
+    closePanel();
+    fetchWeather();
+  });
+
+  // ---------- fullscreen ----------
+  function goFullscreen(){
+    var el = document.documentElement;
+    try{
+      if(el.requestFullscreen) el.requestFullscreen();
+      else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    }catch(e){}
+  }
+  document.getElementById("fsBtn").addEventListener("click", goFullscreen);
+
+  var tapFs = document.getElementById("tapFs");
+  document.body.addEventListener("click", function once(){
+    tapFs.classList.add("hide");
+    goFullscreen();
+    document.body.removeEventListener("click", once);
+  });
+
+  // keep screen awake where supported (Chrome 84+); silently ignored on older WebView
+  function requestWakeLock(){
+    if("wakeLock" in navigator){
+      navigator.wakeLock.request("screen").catch(function(){});
+    }
+  }
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "visible") requestWakeLock();
+  });
+
+  // ---------- boot ----------
+  if(lastGood) renderAll(lastGood);
+  tickClock();
+  setInterval(tickClock, 1000);
+  initStars();
+  fetchWeather();
+  setInterval(fetchWeather, 10*60*1000); // elke 10 minuten
+  requestWakeLock();
+
+})();
+</script>
+</body>
+</html>
