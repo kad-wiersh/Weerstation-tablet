@@ -11,13 +11,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#0B1220;
-    --cloud:#F4F7FA;
-    --muted:#93A2BE;
-    --gold:#F5B942;
-    --coral:#FF8A5B;
-    --line: rgba(244,247,250,0.16);
-    --panel: rgba(244,247,250,0.06);
+    --ink:#0B1220;   /* deep, near-black blue, commonly known as Chinese Black or an "Arabian Nights" dark navy */
+    --cloud:#F4F7FA; /* very light, desaturated blue-gray often called Alice Blue or "Porcelain White" */
+    --muted:#93A2BE; /* dusty, unsaturated shade of light blue */
+    --gold:#F5B942;  /* bright, warm neon-style yellow-orange with a cream-like tone */
+    --coral:#FF8A5B; /* vibrant, light orange often referred to as "Glossy Coral" or a warm, mellow peach */
+    --red:#FF0000;
+    --green:#00FF00;
+    --line: rgba(244,247,250,0.16);  /* off-white/light gray with an alpha transparency of 16% */
+    --panel: rgba(244,247,250,0.06); /* off-white/light gray with an alpha transparency of 6% */
     --bg-a: #0B1220;
     --bg-b: #1B2A4A;
     --transition-bg: background 1.4s ease;
@@ -46,17 +48,57 @@
     font-size: clamp(16px, 2vw, 24px); letter-spacing:.02em;
     color: var(--cloud); opacity:.92;
   }
-  .place small{display:block; font-family:'IBM Plex Mono', monospace; font-weight:400;
-    font-size: clamp(10px,1.1vw,13px); color: var(--muted); letter-spacing:.08em; margin-top:2px;}
-  .clockwrap{text-align:right;}
+  .place small{
+    display:block; font-family:'IBM Plex Mono', monospace; font-weight:400;
+    font-size: clamp(10px,1.1vw,13px); color: var(--cloud); letter-spacing:.08em; margin-top:2px;}
+  /* .clockwrap{text-align:right;} */
   .clock{
     font-family:'IBM Plex Mono', monospace; font-weight:500;
     font-size: clamp(28px, 4.4vw, 56px); line-height:1; letter-spacing:.01em;
   }
-  /* .clock span{color:var(--gold);} */
+  .clock span{color:var(--gold);}
   .date{
-    font-family:'Inter', sans-serif; font-size: clamp(11px,1.2vw,14px);
-    color:var(--gold); margin-top:4px; text-transform:capitalize;
+    font-family:'Inter', sans-serif; font-size: clamp(16px,2vw,24px);
+    color:var(--cloud); margin-top:4px; text-transform:capitalize;
+  }
+  .updated{
+    font-family:'IBM Plex Mono'; font-size:clamp(16px, 2vw, 24px); color:var(--green);
+    text-align:center;
+    }
+  .updated.offline{color:var(--red);}
+  /*
+  .iconbtn{
+    background:var(--panel); border:1px solid var(--cloud); border-radius:10px;
+    width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    color:var(--cloud); cursor:pointer;
+  }
+  .iconbtn svg{width:16px; height:16px;}
+  */
+  .btn-group {
+    /*position: fixed;*/
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eee;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+  .icon-btn:hover {
+    background: #ddd;
+  }
+  .icon-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #333;
   }
 
   /* ---------- middle: sun arc + current ---------- */
@@ -64,26 +106,26 @@
   .arcbox{flex:0 0 34%; max-width:420px; display:flex; flex-direction:column; align-items:center;}
   .arcbox svg{width:100%; height:auto; overflow:visible;}
   .arc-times{display:flex; justify-content:space-between; width:88%; margin-top:-6px;
-    font-family:'IBM Plex Mono', monospace; font-size:clamp(10px,1.15vw,14px); color:var(--muted);}
-  .arc-label{font-family:'Inter'; font-size:clamp(10px,1vw,12px); color:var(--muted); margin-top:10px; letter-spacing:.05em;}
+    font-family:'IBM Plex Mono', monospace; font-size:clamp(10px,1.15vw,14px); color:var(--cloud);}
+  .arc-label{font-family:'Inter'; font-size:clamp(10px,1vw,12px); color:var(--cloud); margin-top:10px; letter-spacing:.05em;}
 
   .current{flex:1; display:flex; align-items:center; gap:3vw; min-width:0;}
   .cur-icon{flex:0 0 auto; width:clamp(70px,9vw,120px); height:clamp(70px,9vw,120px); color:var(--gold);}
+  .cur-desc{font-family:'Space Grotesk'; font-weight:500; font-size:clamp(15px,1.8vw,22px); margin-top:2px;}
   .cur-main{min-width:0;}
   .cur-temp{
     font-family:'Space Grotesk', sans-serif; font-weight:700;
     font-size: clamp(52px, 9vw, 128px); line-height:1; letter-spacing:-.01em;
     display:flex; align-items:flex-start;
   }
-  .cur-temp sup{font-size:.35em; font-weight:500; margin-top:.15em; color:var(--muted);}
-  .cur-desc{font-family:'Space Grotesk'; font-weight:500; font-size:clamp(15px,1.8vw,22px); margin-top:2px;}
-  .cur-feels{font-family:'Inter'; font-size:clamp(12px,1.2vw,14px); color:var(--muted); margin-top:2px;}
+  .cur-temp sup{font-size:.35em; font-weight:500; margin-top:.15em; color:var(--cloud);}
+  .cur-feels{font-family:'Inter'; font-size:clamp(16px,1.2vw,18px); color:var(--cloud); margin-top:2px;}
 
   .details{flex:0 0 auto; display:grid; grid-template-columns:1fr; gap:10px; min-width:150px;}
   .det{display:flex; align-items:center; gap:10px;}
-  .det svg{width:clamp(16px,1.8vw,22px); height:clamp(16px,1.8vw,22px); color:var(--muted); flex:0 0 auto;}
+  .det svg{width:clamp(16px,1.8vw,22px); height:clamp(16px,1.8vw,22px); color:var(--cloud); flex:0 0 auto;}
   .det-val{font-family:'IBM Plex Mono', monospace; font-size:clamp(13px,1.4vw,17px);}
-  .det-sub{font-family:'Inter'; font-size:clamp(9px,0.9vw,11px); color:var(--muted); display:block;}
+  .det-sub{font-family:'Inter'; font-size:clamp(9px,0.9vw,11px); color:var(--cloud); display:block;}
 
   /* ---------- hourly strip ---------- */
   .hourly{
@@ -93,10 +135,10 @@
   }
   .hourly::-webkit-scrollbar{height:0;}
   .hr{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:6px; min-width:48px;}
-  .hr-t{font-family:'IBM Plex Mono'; font-size:clamp(10px,1vw,12px); color:var(--muted);}
+  .hr-t{font-family:'IBM Plex Mono'; font-size:clamp(10px,1vw,12px); color:var(--cloud);}
   .hr-icon{width:clamp(20px,2.2vw,28px); height:clamp(20px,2.2vw,28px); color:var(--cloud); opacity:.85;}
   .hr-temp{font-family:'Space Grotesk'; font-weight:600; font-size:clamp(13px,1.3vw,16px);}
-  .hr-pop{font-family:'IBM Plex Mono'; font-size:clamp(9px,0.85vw,11px); color:#7FC4FF;}
+  .hr-pop{font-family:'IBM Plex Mono'; font-size:clamp(9px,0.85vw,11px); color:var(--cloud);}
 
   /* ---------- daily row ---------- */
   .daily{display:flex; justify-content:space-between; gap: clamp(6px,1vw,14px); padding-top:12px; border-top:1px solid var(--line); margin-top:8px;}
@@ -104,22 +146,17 @@
   .dy-name{font-family:'Space Grotesk'; font-weight:600; font-size:clamp(11px,1.1vw,14px); text-transform:capitalize;}
   .dy-icon{width:clamp(20px,2.4vw,30px); height:clamp(20px,2.4vw,30px); color:var(--gold); margin:2px 0;}
   .dy-range{font-family:'IBM Plex Mono'; font-size:clamp(10px,1vw,13px); display:flex; gap:6px;}
-  .dy-range .lo{color:var(--muted);}
-  .dy-pop{font-family:'IBM Plex Mono'; font-size:clamp(9px,0.85vw,11px); color:#7FC4FF;}
+  .dy-range .lo{color:var(--gold);}
+  .dy-pop{font-family:'IBM Plex Mono'; font-size:clamp(9px,0.85vw,11px); color:var(--cloud);}
 
   /* ---------- footer ---------- */
+  /*
   .footer{display:flex; justify-content:space-between; align-items:center; margin-top:10px; opacity:.7;}
-  .updated{font-family:'IBM Plex Mono'; font-size:clamp(9px,0.9vw,11px); color:var(--muted);}
-  .updated.offline{color:var(--coral);}
-  .iconbtn{
-    background:var(--panel); border:1px solid var(--line); border-radius:10px;
-    width:34px; height:34px; display:flex; align-items:center; justify-content:center;
-    color:var(--muted); cursor:pointer;
-  }
-  .iconbtn svg{width:16px; height:16px;}
   .footer-right{display:flex; gap:8px;}
-
+  */
+  
   /* ---------- settings panel ---------- */
+  /*
   .overlay{position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:5; display:none; align-items:center; justify-content:center;}
   .overlay.show{display:flex;}
   .panel{
@@ -137,7 +174,7 @@
   .btn.primary{background:var(--gold); color:#1a1300;}
   .btn.ghost{background:transparent; color:var(--muted); border:1px solid var(--line);}
   .hint{font-size:11px; color:var(--muted); margin-top:14px; line-height:1.5;}
-
+  */
   .tapfs{position:fixed; inset:0; z-index:9; display:flex; align-items:center; justify-content:center;
     background:rgba(0,0,0,.5); color:var(--cloud); font-family:'Space Grotesk'; font-size:16px; text-align:center; padding:20px;}
   .tapfs.hide{display:none;}
@@ -149,12 +186,38 @@
 
   <div class="topbar">
     <div class="place">
-      <span id="placeName">Rijssen</span>
-      <small id="coords">52.32°N 6.52°O</small>
+      <span id="placeName">Plaats</span>
+      <small id="coords">Coordinaten</small>
     </div>
-    <div class="clockwrap">
+    <div class="date" id="dateStr">Datum</div>
+    <!-- <div class="clockwrap"> -->
       <div class="clock" id="clock">--<span>:</span>--</div>
-      <div class="date" id="dateStr">-</div>
+      <!-- <div class="date" id="dateStr">-</div> -->
+    <!-- </div> -->
+    <div id="updated" class="updated">
+      <span id="updatedText">Status</span><br>
+      <span id="updatedDate">Onbekend</span>
+    </div>
+    
+    <div class="btn-group">
+      <div class="icon-btn" id="refDataBtn" title="Refetch data">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="icon-btn" id="relPageBtn" title="Reload page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4v5h5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 20v-5h-5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4.5 15a8 8 0 0014.9 2.5M19.5 9a8 8 0 00-14.9-2.5" stroke="black" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="icon-btn" id="fsBtn" title="Volledig scherm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>
+        </svg>
+      </div>
     </div>
   </div>
 
@@ -172,24 +235,43 @@
     </div>
 
     <div class="current">
-      <div class="cur-icon" id="curIcon"></div>
+      <div class="cur-kind">
+        <div class="cur-icon" id="curIcon"></div>
+        <div class="cur-desc" id="curDesc">Laden…</div>
+      </div>
       <div class="cur-main">
         <div class="cur-temp" id="curTemp">--<sup>°C</sup></div>
-        <div class="cur-desc" id="curDesc">Laden…</div>
+        <!-- <div class="cur-desc" id="curDesc">Laden…</div> -->
         <div class="cur-feels" id="curFeels">Voelt als --°</div>
       </div>
       <div class="details">
         <div class="det">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2s7 8.5 7 13a7 7 0 1 1-14 0c0-4.5 7-13 7-13z"/></svg>
-          <div><span class="det-val" id="detHum">--%</span><span class="det-sub">Vochtigheid</span></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 2s7 8.5 7 13a7 7 0 1 1-14 0c0-4.5 7-13 7-13z"/>
+          </svg>
+          <div>
+            <span class="det-val" id="detHum">--%</span>
+            <span class="det-sub">Vochtigheid</span>
+          </div>
         </div>
         <div class="det">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h11a3 3 0 1 0-3-3M3 16h15a3 3 0 1 1-3 3M3 12h9a2.5 2.5 0 1 1-2.5 2.5"/></svg>
-          <div><span class="det-val" id="detWind">-- km/h</span><span class="det-sub" id="detWindDir">--</span></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M3 8h11a3 3 0 1 0-3-3M3 16h15a3 3 0 1 1-3 3M3 12h9a2.5 2.5 0 1 1-2.5 2.5"/>
+          </svg>
+          <div>
+            <span class="det-val" id="detWind">-- km/h</span>
+            <span class="det-sub" id="detWindDir">--</span>
+          </div>
         </div>
         <div class="det">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="7"/><path d="M12 13l3-3M12 4v2"/></svg>
-          <div><span class="det-val" id="detPres">-- hPa</span><span class="det-sub">Luchtdruk</span></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="13" r="7"/>
+            <path d="M12 13l3-3M12 4v2"/>
+          </svg>
+          <div>
+            <span class="det-val" id="detPres">-- hPa</span>
+            <span class="det-sub">Luchtdruk</span>
+          </div>
         </div>
       </div>
     </div>
@@ -197,23 +279,29 @@
 
   <div class="hourly" id="hourlyRow"></div>
   <div class="daily" id="dailyRow"></div>
-
+<!--
   <div class="footer">
     <div class="updated" id="updatedText">Laden…</div>
     <div class="footer-right">
-      <div class="iconbtn" id="fsBtn" title="Volledig scherm">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      <div class="icon-btn" id="fsBtn" title="Volledig scherm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>
+        </svg>
       </div>
       <div class="iconbtn" id="settingsBtn" title="Instellingen">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
       </div>
     </div>
   </div>
-
+-->
 </div>
 
 <div class="tapfs" id="tapFs">Tik ergens om te starten<br><small style="opacity:.7">(en eventueel volledig scherm te openen)</small></div>
 
+<!--
 <div class="overlay" id="overlay">
   <div class="panel">
     <h3>Locatie instellen</h3>
@@ -230,17 +318,20 @@
     <div class="hint">Coördinaten opzoeken kan bijvoorbeeld via latlong.net. De gegevens komen van open-meteo.com (geen API-sleutel nodig).</div>
   </div>
 </div>
+-->
 
 <script>
 (function(){
   "use strict";
 
   // ---------- state & defaults ----------
-  var DEFAULTS = { name: "Nijverdal", lat: 52.3639, lon: 6.4628 };
-  var loc = loadLocation();
+  // var DEFAULTS = { name: "Nijverdal", lat: 52.3639, lon: 6.4628 };
+  var loc = { name: "Nijverdal", lat: 52.3639, lon: 6.4628 };
+  // var loc = loadLocation();
+  // var loc = DEFAULTS;
   var lastGood = loadCache();
   var refreshTimer = null;
-
+/*
   function loadLocation(){
     try{
       var raw = localStorage.getItem("ws_location");
@@ -252,6 +343,7 @@
     loc = l;
     try{ localStorage.setItem("ws_location", JSON.stringify(l)); }catch(e){}
   }
+*/
   function loadCache(){
     try{
       var raw = localStorage.getItem("ws_cache");
@@ -429,15 +521,18 @@
   }
 
   function setUpdated(ok){
-    var el = document.getElementById("updatedText");
+    var elu = document.getElementById("updated");
+    var els = document.getElementById("updatedText");
+    var eld = document.getElementById("updatedDate");
     var now = new Date();
     var stamp = pad(now.getHours()) + ":" + pad(now.getMinutes());
     if(ok){
-      el.textContent = "Bijgewerkt " + stamp;
-      el.className = "updated";
+      els.textContent = "Bijgewerkt";
+      elu.className = "updated";
+      eld.textContent = stamp;
     } else {
-      el.textContent = "Offline — laatste gegevens van " + stamp;
-      el.className = "updated offline";
+      els.textContent = "Offline sinds";
+      elu.className = "updated offline";
     }
   }
 
@@ -523,6 +618,22 @@
     fetchWeather();
   });
 */
+  // ---------- reload page ----------
+  function reloadPage(){
+    try{
+      location.reload();
+    }catch(e){}
+  }
+  document.getElementById("relPageBtn").addEventListener("click", reloadPage);
+
+  // ---------- refetch data ----------
+  function refetchData(){
+    try{
+      fetchWeather();
+    }catch(e){}
+  }
+  document.getElementById("refDataBtn").addEventListener("click", refetchData);
+
   // ---------- fullscreen ----------
   function goFullscreen(){
     var el = document.documentElement;
@@ -532,6 +643,7 @@
     }catch(e){}
   }
   document.getElementById("fsBtn").addEventListener("click", goFullscreen);
+
 
   var tapFs = document.getElementById("tapFs");
   document.body.addEventListener("click", function once(){
