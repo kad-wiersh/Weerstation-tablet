@@ -251,7 +251,9 @@
 
   function buildChart(daily){
     var n = Math.min(14, daily.time.length); // nr of days, max 14
-    var colW = 92, marginL = 20, marginR = 20;  // total width is 14*92+20+20=1328 laptop is 1536, tablet 1280
+    var colW = 92;
+    var marginL = 20, marginR = 20;  // total width is 14*92+20+20=1328 laptop is 1536, tablet 1280
+    var colWW = Math.floor((screenW-marginL-marginR)/n);
     var marginTop = 16;
     var sunTop = marginTop, sunW = 50;
     var iconTop = marginTop, iconSize = 34;
@@ -281,7 +283,7 @@
     svg.innerHTML = "";
 
     // diagnostics
-    // svg.appendChild(svgTxt({x:marginL, y:10, "text-anchor":"left", "font-size":15, "font-weight":600, "fill":"#93A2BE"}, "screenW="+screenW+" screenH="+screenH));
+    svg.appendChild(svgTxt({x:marginL, y:10, "text-anchor":"left", "font-size":15, "font-weight":600, "fill":"#93A2BE"}, "screenW="+screenW+" colW="+colW+" colWW="+colWW));
     // svg.appendChild(svgEl("line", {x1:marginL+5, y1:windY, x2:marginL+150, y2:windY, stroke:"rgba(0,0,0,1)", "stroke-width":1, "stroke-dasharray":"4,5"}));
        svg.appendChild(svgEl("rect", {x:0, y:0, width:totalW, height:totalH, rx:3, stroke:"yellow", opacity:"0.85", fill:"none", "stroke-width":"3"}));
        svg.appendChild(svgEl("rect", {x:marginL, y:barTop, width:n*colW, height:barBottom - barTop, rx:3, stroke:"red", opacity:"0.85", fill:"none", "stroke-width":"3"}));
